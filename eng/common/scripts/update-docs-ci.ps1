@@ -29,16 +29,7 @@ param (
   $CIRepository,
 
   [Parameter(Mandatory = $true)]
-  [ValidateSet("Latest","Preview")]
-  $Mode,
-
-  # Java leverage a single config file, CI does not support anywhere but default location
-  # instead, the moniker ID (really just an index) tells the script which part of the json to update
-  $MonikerIdentifier,
-
-  # C#, JS, Python leverage a config file per moniker. need to update multiple
-  # a file for each moniker. 
-  $PathToConfigFile
+  $Configs
 )
 
 # import artifact parsing and semver handling
@@ -236,6 +227,14 @@ function UpdatePackageJson($pkgs, $ciRepo, $locationInDocRepo, $monikerId){
   Set-Content -Path $pkgJsonLoc -Value ($allJsonData | ConvertTo-Json -Depth 10 | % {$_ -replace "(?m)  (?<=^(?:  )*)", "    " })
 }
 
+$targets = $Configs | ConvertFrom-Json
+
+#{
+# path:
+# mode:
+# monikerid
+#}
+
 $apiUrl = "https://api.github.com/repos/$repoId"
 $pkgs = VerifyPackages -pkgRepository $Repository `
   -artifactLocation $ArtifactLocation `
@@ -243,33 +242,35 @@ $pkgs = VerifyPackages -pkgRepository $Repository `
   -apiUrl $apiUrl `
   -continueOnError $True 
 
-if ($Mode -eq "Preview") { $includePreview = $true } else { $includePreview = $false }
-$pkgs = $pkgs | ? { $_.IsPrerelease -eq $includePreview}
+foreach ($config in $targets) {
+  if ($config.mode -eq "Preview") { $includePreview = $true } else { $includePreview = $false }
+  $pkgs = $pkgs | ? { $_.IsPrerelease -eq $includePreview}
 
-if ($pkgs) {
-  Write-Host "Given the visible artifacts, CI updates will be processed for the following packages."
-  Write-Host ($pkgs | % { $_.PackageId + " " + $_.PackageVersion })
+  if ($pkgs) {
+    Write-Host "Given the visible artifacts, CI updates against $PathToConfigFile will be processed for the following packages."
+    Write-Host ($pkgs | % { $_.PackageId + " " + $_.PackageVersion })
 
-  switch ($Repository) {
-    "Nuget" {
-      UpdateCSVBasedCI -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
-      break
-    }
-    "NPM" {
-      UpdateParamsJsonJS -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
-      break
-    }
-    "PyPI" {
-      UpdateParamsJsonPython -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
-      break
-    }
-    "Maven" {
-      UpdatePackageJson -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile -monikerId $MonikerIdentifier 
-      break
-    }
-    default {
-      Write-Host "Unrecognized target: $Repository"
-      exit(1)
+    switch ($Repository) {
+      "Nuget" {
+        UpdateCSVBasedCI -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        break
+      }
+      "NPM" {
+        UpdateParamsJsonJS -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        break
+      }
+      "PyPI" {
+        UpdateParamsJsonPython -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        break
+      }
+      "Maven" {
+        UpdatePackageJson -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile -monikerId $MonikerIdentifier 
+        break
+      }
+      default {
+        Write-Host "Unrecognized target: $Repository"
+        exit(1)
+      }
     }
   }
 }

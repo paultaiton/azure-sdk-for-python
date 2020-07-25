@@ -147,6 +147,9 @@ stages:
               pool:
                 vmImage: ubuntu-18.04
 
+              variables:
+                CIConfigs: '[{"path_to_config":"ci-configs/packages-preview.json","Mode":"Preview"},{"path_to_config":"ci-configs/packages-preview.json","Mode":"Preview"}]'
+
               strategy:
                 runOnce:
                   deploy:
@@ -181,6 +184,7 @@ stages:
                           ServiceDirectory: ${{ parameters.ServiceDirectory }}
                           DocRepoDestinationPath: 'docs-ref-services/' 
                           GHReviewersVariable: 'OwningGHUser'
+                          Configs: $(CIConfigs)
 
           - ${{if ne(artifact.options.skipUpdatePackageVersion, 'true')}}:
             - deployment: UpdatePackageVersion

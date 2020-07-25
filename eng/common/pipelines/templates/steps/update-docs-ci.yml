@@ -8,7 +8,6 @@ parameters:
   ScriptDirectory: eng/common/scripts
   TargetDocRepoName: ''
   TargetDocRepoOwner: ''
-  PRBranchName: ''
   SourceBranchName: 'smoke-test'
   ArtifactName: ''
 
