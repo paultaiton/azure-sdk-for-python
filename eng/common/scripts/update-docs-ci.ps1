@@ -247,24 +247,24 @@ foreach ($config in $targets) {
   $pkgs = $pkgs | ? { $_.IsPrerelease -eq $includePreview}
 
   if ($pkgs) {
-    Write-Host "Given the visible artifacts, CI updates against $PathToConfigFile will be processed for the following packages."
+    Write-Host "Given the visible artifacts, CI updates against $($config.path) will be processed for the following packages."
     Write-Host ($pkgs | % { $_.PackageId + " " + $_.PackageVersion })
 
     switch ($Repository) {
       "Nuget" {
-        UpdateCSVBasedCI -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        UpdateCSVBasedCI -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $config.path
         break
       }
       "NPM" {
-        UpdateParamsJsonJS -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        UpdateParamsJsonJS -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $config.path
         break
       }
       "PyPI" {
-        UpdateParamsJsonPython -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile
+        UpdateParamsJsonPython -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $config.path
         break
       }
       "Maven" {
-        UpdatePackageJson -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $PathToConfigFile -monikerId $MonikerIdentifier 
+        UpdatePackageJson -pkgs $pkgs -ciRepo $CIRepository -locationInDocRepo $config.path -monikerId $config.monikerid
         break
       }
       default {

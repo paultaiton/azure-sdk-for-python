@@ -8,6 +8,7 @@ parameters:
   ScriptDirectory: eng/common/scripts
   TargetDocRepoName: ''
   TargetDocRepoOwner: ''
+  PRBranchName: ''
   SourceBranchName: 'smoke-test'
   ArtifactName: ''
 
@@ -15,11 +16,7 @@ parameters:
   PreviewConfigLoc: ''
   PreviewConfigArgs: ''
   LatestConfigLoc: ''
-  LatestConfigArgs: ''
-
-  # externally set, as eng-common does not have the identity-resolver. Run as pre-step
-  GHReviewersVariable: '' 
-  GHTeamReviewersVariable: '' 
+  LatestConfigArgs: '' 
 
 steps:
 - pwsh: |
@@ -35,24 +32,6 @@ steps:
     }
   displayName: Clone Target Documentation Repository
 
-- task: PowerShell@2
-  displayName: 'Update Targeted GA Packages'
-  inputs:
-    targetType: filePath
-    filePath: ${{ parameters.ScriptDirectory }}/update-docs-ci.ps1
-    arguments: >
-      -ArtifactLocation ${{ parameters.ArtifactLocation }}
-      -WorkDirectory "${{ parameters.WorkingDirectory }}"
-      -RepoId ${{ parameters.RepoId }}
-      -Repository ${{ parameters.PackageRepository }}
-      -ReleaseSHA ${{ parameters.ReleaseSha }}
-      -CIRepository "${{ parameters.WorkingDirectory }}/repo"
-      -PathToConfigFile ${{ parameters.LatestConfigLoc }}
-      -Mode Latest
-      ${{ parameters.LatestConfigArgs }}
-    pwsh: true
-  env:
-    GH_TOKEN: $(azuresdk-github-pat)
 
 - task: PowerShell@2
   displayName: 'Update Targeted Preview Packages'
