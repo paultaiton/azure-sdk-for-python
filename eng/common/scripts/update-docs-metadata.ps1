@@ -43,7 +43,7 @@ function GetMetaData($lang){
     }
   }
 
-  $metadataResponse = Invoke-WebRequest-WithHandling -url $metadataUri -method "GET" | ConvertFrom-Csv
+  $metadataResponse = Invoke-RestMethod-WithHandling -url $metadataUri -method "GET" | ConvertFrom-Csv
 
   return $metadataResponse
 }
