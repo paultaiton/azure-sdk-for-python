@@ -74,7 +74,7 @@ steps:
     PRBranchName: ${{ parameters.PRBranchName }}
     CommitMsg: "Update docs metadata and targeting for release of ${{ parameters.ArtifactName }}"
     PRTitle: "Docs.MS Release Updates for ${{ parameters.ArtifactName }}"
-    BaseBranchName: smoke-test-${{ parameters.ArtifactName }}-$(Build.BuildId)
+    BaseBranchName: smoke-test
     WorkingDirectory: ${{ parameters.WorkingDirectory }}/repo
     ScriptDirectory: ${{ parameters.WorkingDirectory }}/${{ parameters.ScriptDirectory }}
     GHReviewersVariable: ${{ parameters.GHReviewersVariable }}
