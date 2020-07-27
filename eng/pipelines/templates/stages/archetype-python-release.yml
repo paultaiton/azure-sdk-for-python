@@ -148,7 +148,7 @@ stages:
                 vmImage: ubuntu-18.04
 
               variables:
-                CIConfigs: '[{"path_to_config":"ci-configs/packages-preview.json","Mode":"Preview"},{"path_to_config":"ci-configs/packages-preview.json","Mode":"Preview"}]'
+                CIConfigs: "[{'path_to_config':'ci-configs/packages-preview.json','Mode':'Preview'},{'path_to_config':'ci-configs/packages-preview.json','Mode':'Preview'}]"
 
               strategy:
                 runOnce:
