@@ -184,7 +184,7 @@ stages:
                           ServiceDirectory: ${{ parameters.ServiceDirectory }}
                           DocRepoDestinationPath: 'docs-ref-services/' 
                           GHReviewersVariable: 'OwningGHUser'
-                          Configs: $(CIConfigs)
+                          CIConfigs: $(CIConfigs)
 
           - ${{if ne(artifact.options.skipUpdatePackageVersion, 'true')}}:
             - deployment: UpdatePackageVersion
