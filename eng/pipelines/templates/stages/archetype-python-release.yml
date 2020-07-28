@@ -178,7 +178,7 @@ stages:
                           TargetDocRepo: 'MicrosoftDocs/azure-docs-sdk-python'
                           TargetDocRepoOwner: ${{parameters.TargetDocRepoOwner}}
                           TargetDocRepoName: ${{parameters.TargetDocRepoName}}
-                          PRBranchName: onboarding-${{ parameters.ArtifactName }}-$(Build.BuildId)
+                          PRBranchName: onboarding-${{artifact.name}}-$(Build.BuildId)
                           ArtifactName: ${{parameters.ArtifactName}}
                           Language: 'python'
                           ServiceDirectory: ${{ parameters.ServiceDirectory }}
