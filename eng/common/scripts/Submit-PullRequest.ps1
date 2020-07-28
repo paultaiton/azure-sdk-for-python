@@ -71,8 +71,6 @@ else {
     maintainer_can_modify = $true
   }
 
-  Write-Host $PRBody
-
   try {
     $resp = Invoke-RestMethod -Method POST -Headers $headers `
                               "https://api.github.com/repos/$RepoOwner/$RepoName/pulls" `

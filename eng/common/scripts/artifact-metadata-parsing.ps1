@@ -36,47 +36,7 @@ function CreateReleases($pkgList, $releaseApiUrl, $releaseSha) {
       "Authorization" = "token $($env:GH_TOKEN)"
     }
 
-    Invoke-RestMethod-WithHandling -url $url -body $body -headers $headers -method "Post"
-  }
-}
-
-function Invoke-RestMethod-WithHandling($url, $method, $body = $null, $headers = $null) {
-  $attempts = 1
-
-  while ($attempts -le 3) {
-    try {
-      return Invoke-RestMethod -Method $method -Uri $url -Body $body -Headers $headers
-    }
-    catch {
-      $response = $_.Exception.Response
-
-      $statusCode = $response.StatusCode.value__
-      $statusDescription = $response.StatusDescription
-
-      if ($statusCode) {
-        Write-Host "API request attempt number $attempts to $url failed with statuscode $statusCode"
-        Write-Host $statusDescription
-
-        Write-Host "Rate Limit Details:"
-        Write-Host "Total: $($response.Headers.GetValues("X-RateLimit-Limit"))"
-        Write-Host "Remaining: $($response.Headers.GetValues("X-RateLimit-Remaining"))"
-        Write-Host "Reset Epoch: $($response.Headers.GetValues("X-RateLimit-Reset"))"
-      }
-      else {
-        Write-Host "API request attempt number $attempts to $url failed with no statuscode present, exception follows:"
-        Write-Host $_.Exception.Response
-        Write-Host $_.Exception
-      }
-
-      if ($attempts -ge 3) {
-        Write-Host "Abandoning Request $url after 3 attempts."
-        exit(1)
-      }
-
-      Start-Sleep -s 10
-    }
-
-    $attempts += 1
+    Invoke-RestMethod -Uri $url -Body $body -Headers $headers -Method "Post" -MaximumRetryCount 3 -RetryIntervalSec 10
   }
 }
 
@@ -120,7 +80,7 @@ function IsMavenPackageVersionPublished($pkgId, $pkgVersion, $groupId) {
   try {
 
     $uri = "https://oss.sonatype.org/content/repositories/releases/$groupId/$pkgId/$pkgVersion/$pkgId-$pkgVersion.pom"
-    $pomContent = Invoke-RestMethod -MaximumRetryCount 3 -Method "GET" -uri $uri
+    $pomContent = Invoke-RestMethod -MaximumRetryCount 3 -RetryIntervalSec 10 -Method "GET" -uri $uri
 
     if ($pomContent -ne $null -or $pomContent.Length -eq 0) {
       return $true
@@ -260,7 +220,7 @@ function IsNugetPackageVersionPublished($pkgId, $pkgVersion) {
   $nugetUri = "https://api.nuget.org/v3-flatcontainer/$($pkgId.ToLowerInvariant())/index.json"
 
   try {
-    $nugetVersions = Invoke-RestMethod -MaximumRetryCount 3 -uri $nugetUri -Method "GET"
+    $nugetVersions = Invoke-RestMethod -MaximumRetryCount 3 -RetryIntervalSec 10 -uri $nugetUri -Method "GET"
 
     return $nugetVersions.versions.Contains($pkgVersion)
   }
@@ -383,7 +343,7 @@ function ParseCppArtifact($pkg, $workingDirectory) {
 # Returns the pypi publish status of a package id and version.
 function IsPythonPackageVersionPublished($pkgId, $pkgVersion) {
   try {
-    $existingVersion = (Invoke-RestMethod -MaximumRetryCount 3 -Method "Get" -uri "https://pypi.org/pypi/$pkgId/$pkgVersion/json").info.version
+    $existingVersion = (Invoke-RestMethod -MaximumRetryCount 3 -RetryIntervalSec 10 -Method "Get" -uri "https://pypi.org/pypi/$pkgId/$pkgVersion/json").info.version
 
     # if existingVersion exists, then it's already been published
     return $True
@@ -534,7 +494,7 @@ function CheckArtifactShaAgainstTagsList($priorExistingTagList, $releaseSha, $ap
   $unmatchedTags = @()
 
   foreach ($tag in $priorExistingTagList) {
-    $tagSha = (Invoke-RestMethod-WithHandling -Method "Get" -Url "$apiUrl/git/refs/tags/$tag" -Headers $headers)."object".sha
+    $tagSha = (Invoke-RestMethod -Method "Get" -Uri "$apiUrl/git/refs/tags/$tag" -Headers $headers -MaximumRetryCount 3 -RetryIntervalSec 10)."object".sha
 
     if ($tagSha -eq $releaseSha) {
       Write-Host "This package has already been released. The existing tag commit SHA $releaseSha matches the artifact SHA being processed. Skipping release step for this tag."
